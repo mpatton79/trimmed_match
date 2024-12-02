@@ -1,0 +1,27 @@
+###############################################################################
+# Bazel now uses Bzlmod by default to manage external dependencies.
+# Please consider migrating your external dependencies from WORKSPACE to MODULE.bazel.
+#
+# For more details, please check https://github.com/bazelbuild/bazel/issues/18958
+###############################################################################
+module(name = "main", version="")
+
+# -- bazel_dep definitions -- #
+bazel_dep(name = "pybind11_bazel", version = "2.13.6")
+bazel_dep(name = "bazel_skylib", version = "1.7.1")
+bazel_dep(name = "glog", version = "0.7.1")
+bazel_dep(name = "gflags", repo_name = "com_github_gflags_gflags", version = "2.2.2")
+bazel_dep(name = "googletest", repo_name = "com_google_googletest", version = "1.15.2")
+bazel_dep(name = "abseil-cpp", repo_name = "com_google_absl", version = "20240722.0")
+bazel_dep(name = "platforms", version = "0.0.10")
+bazel_dep(name = "rules_python", version = "0.34.0")
+
+# -- set python version -- #
+python = use_extension("@rules_python//python/extensions:python.bzl", "python")
+python.toolchain(python_version = '3.12', is_default = True)
+
+# -- use_repo_rule statements -- #
+
+
+# -- repo definitions -- #
+

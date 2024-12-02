@@ -23,6 +23,9 @@ import sysconfig
 
 import setuptools
 from setuptools.command import build_ext
+from platform import python_version
+
+PY_VERSION =  ".".join(python_version().split(".")[0:2])
 
 __version__ = '1.0.0'
 
@@ -35,6 +38,8 @@ REQUIRED_PACKAGES = [
 
 WORKSPACE_PYTHON_HEADERS_PATTERN = re.compile(
     r'(?<=path = ").*(?=",  # May be overwritten by setup\.py\.)')
+
+MODULE_PYTHON_VERSION_PATTERN = re.compile(r'(?<=python\_version\s\=\s)(.*)(?=, is_default)')
 
 IS_WINDOWS = sys.platform.startswith('win')
 
@@ -60,20 +65,18 @@ class BuildBazelExtension(build_ext.build_ext):
     build_ext.build_ext.run(self)
 
   def bazel_build(self, ext):
-    with open('WORKSPACE', 'r') as f:
+    with open('MODULE.bazel', 'r') as f:
       workspace_contents = f.read()
 
-    with open('WORKSPACE', 'w') as f:
+    with open('MODULE.bazel', 'w') as f:
       f.write(
-          WORKSPACE_PYTHON_HEADERS_PATTERN.sub(
-              sysconfig.get_path('include').replace(os.path.sep, posixpath.sep),
-              workspace_contents))
+	  MODULE_PYTHON_VERSION_PATTERN.sub("'"+PY_VERSION+"'", workspace_contents))
 
     if not os.path.exists(self.build_temp):
       os.makedirs(self.build_temp)
 
     bazel_argv = [
-        'bazel', 'build', ext.bazel_target + '.so',
+        'bazel', 'build', '--enable_bzlmod', ext.bazel_target + '.so',
         '--symlink_prefix=' + os.path.join(self.build_temp, 'bazel-'),
         '--compilation_mode=' + ('dbg' if self.debug else 'opt')
     ]
